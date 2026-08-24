@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+
+# Supabase local development state
+.supabase/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/

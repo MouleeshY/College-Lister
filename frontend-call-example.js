@@ -10,7 +10,7 @@ async function getAIRanking(goalText = "") {
 
   if (error) {
     console.error(error);
-    alert("AI ranking failed — check that the edge function is deployed and ANTHROPIC_API_KEY is set.");
+    alert("AI ranking failed — check that the edge function is deployed and GEMINI_API_KEY is set.");
     return;
   }
 

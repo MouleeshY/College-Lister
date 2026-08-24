@@ -13,6 +13,10 @@ school. Plain HTML/CSS/JS, no build step, backed by Supabase.
    and sets up permissive Row Level Security policies (see security note below).
 3. Go to **Project Settings → API**. Copy the **Project URL** and the **anon public** key.
 
+Run the schema script once for a new project. It includes a sample NTU row and
+permissive policies for this no-login prototype; do not rerun it on a populated
+project without reviewing the seed and policy statements.
+
 ## 2. Configure the app
 
 Open `config.js` and paste in your values:
@@ -46,6 +50,8 @@ supabase secrets set GEMINI_API_KEY=your-gemini-key
 
 The rest of the dossier works without the function. A clear status message appears if
 Supabase is not configured, the function is not deployed, or Gemini is unavailable.
+The function accepts requests from the GitHub Pages site and the local development
+server; update its allowlist if you use a different hosting origin.
 
 ## Using it
 
