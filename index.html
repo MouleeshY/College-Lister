@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PhD Dossier — Application Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ===== Header ===== -->
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="masthead-mark">§</div>
+      <div class="masthead-text">
+        <h1>The PhD Dossier</h1>
+        <p class="masthead-sub">A working file on where you might spend the next five years.</p>
+      </div>
+      <div class="masthead-meta" id="lastSynced">not yet synced</div>
+    </div>
+
+    <!-- ===== Folder tabs ===== -->
+    <nav class="folder-tabs" id="tabs">
+      <button class="tab active" data-view="schools">Schools</button>
+      <button class="tab" data-view="dashboard">Dashboard</button>
+      <button class="tab" data-view="recommenders">Recommenders</button>
+      <button class="tab" data-view="materials">Materials</button>
+    </nav>
+  </header>
+
+  <!-- ===== Connection banner (shown until Supabase is configured) ===== -->
+  <div class="banner" id="connBanner" hidden>
+    <span>Not connected to Supabase yet — edits won't be saved. Fill in <code>config.js</code> with your project URL and anon key, then reload.</span>
+  </div>
+
+  <main id="viewRoot">
+
+    <!-- ===================== SCHOOLS VIEW ===================== -->
+    <section class="view" id="view-schools">
+      <div class="view-head">
+        <h2>Schools</h2>
+        <button class="btn btn-primary" id="btnAddSchool">+ Add school</button>
+      </div>
+      <div class="card-grid" id="schoolGrid">
+        <!-- school cards injected here -->
+      </div>
+    </section>
+
+    <!-- ===================== DASHBOARD VIEW ===================== -->
+    <section class="view hidden" id="view-dashboard">
+      <div class="view-head">
+        <h2>Dashboard</h2>
+        <span class="view-sub">Auto-updates from the Schools tab</span>
+      </div>
+
+      <div class="stamp-hero" id="bestStamp">
+        <div class="stamp-ring">
+          <svg viewBox="0 0 200 200" class="stamp-svg">
+            <circle cx="100" cy="100" r="92" class="stamp-circle-outer"/>
+            <circle cx="100" cy="100" r="72" class="stamp-circle-inner"/>
+            <path id="stampArcTop" d="M 100 100 m -80, 0 a 80,80 0 1,1 160,0" fill="transparent"/>
+            <path id="stampArcBottom" d="M 100 100 m -80, 0 a 80,80 0 1,0 160,0" fill="transparent"/>
+            <text class="stamp-arc-text">
+              <textPath href="#stampArcTop" startOffset="50%" text-anchor="middle">BEST OVERALL FIT</textPath>
+            </text>
+          </svg>
+          <div class="stamp-center">
+            <div class="stamp-name" id="stampName">—</div>
+            <div class="stamp-score" id="stampScore">— / 30</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-tools">
+        <label for="aiGoal">Your priorities <span>(optional)</span></label>
+        <div class="ai-tools-row">
+          <input id="aiGoal" type="text" maxlength="500" placeholder="Funding matters most to me" />
+          <button class="btn btn-primary" id="btnAiRecommend" type="button">Get AI recommendation</button>
+        </div>
+        <p class="field-report-status" id="aiStatus" role="status"></p>
+      </div>
+      <article class="field-report" id="fieldReport" hidden></article>
+
+      <div class="chart-row">
+        <div class="chart-card">
+          <h3>Total score by college</h3>
+          <canvas id="chartTotal" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Category breakdown</h3>
+          <canvas id="chartCategory" height="220"></canvas>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <h3>Scoring ledger</h3>
+        <table class="ledger" id="scoreTable">
+          <thead>
+            <tr>
+              <th>College</th><th>Country</th><th>Academic</th><th>Funding</th>
+              <th>Admissions</th><th>Career</th><th>Environment</th><th>Personal</th><th>Total</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===================== RECOMMENDERS VIEW ===================== -->
+    <section class="view hidden" id="view-recommenders">
+      <div class="view-head">
+        <h2>Recommenders</h2>
+        <button class="btn btn-primary" id="btnAddRecommender">+ Add recommender</button>
+      </div>
+      <table class="ledger" id="recommenderTable">
+        <thead>
+          <tr><th>Name</th><th>Title</th><th>Email</th><th>Phone</th><th></th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- ===================== MATERIALS VIEW ===================== -->
+    <section class="view hidden" id="view-materials">
+      <div class="view-head">
+        <h2>Application materials</h2>
+        <span class="view-sub">Kept in plaintext for fast copy-pasting into forms</span>
+      </div>
+      <div class="materials-grid" id="materialsGrid">
+        <!-- material folders injected here -->
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===== School edit modal ===== -->
+<dialog id="schoolModal" class="modal">
+  <form method="dialog" class="modal-form" id="schoolForm">
+    <h3 id="schoolModalTitle">Add school</h3>
+    <div class="modal-grid">
+      <label>Name<input name="name" required /></label>
+      <label>Country<input name="country" /></label>
+      <label>Status
+        <select name="status">
+          <option>Researching</option>
+          <option>Account created</option>
+          <option>Personal info</option>
+          <option>Submitted</option>
+          <option>Faculty notified</option>
+          <option>Accepted</option>
+          <option>Rejected</option>
+          <option>Waitlisted</option>
+        </select>
+      </label>
+      <label>Deadline<input name="deadline" /></label>
+      <label>Application link<input name="application_link" /></label>
+      <label>Prospective advisors<input name="prospective_advisors" /></label>
+      <label>Fee<input name="fee" /></label>
+      <label>GRE<input name="gre" /></label>
+      <label>GRE institution code<input name="gre_institution_code" /></label>
+      <label>Recommendation 1<input name="recommendation_1" /></label>
+      <label>Recommendation 2<input name="recommendation_2" /></label>
+      <label>Recommendation 3<input name="recommendation_3" /></label>
+      <label>Faculty notified
+        <select name="faculty_notified"><option>No</option><option>Yes</option></select>
+      </label>
+      <label>Fellowship<input name="fellowship" /></label>
+      <label>Stipend (AY)<input name="stipend_ay" /></label>
+      <label>Stipend (summer)<input name="stipend_summer" /></label>
+      <label>Stipend (total)<input name="stipend_total" /></label>
+      <label>Insurance<input name="insurance" /></label>
+      <label class="span-2">Additional info / fees<input name="additional_info" /></label>
+      <label>Booked
+        <select name="booked"><option>No</option><option>Yes</option></select>
+      </label>
+      <label>Confirmation<input name="confirmation" /></label>
+      <label>Decision
+        <select name="decision"><option>No</option><option>Yes</option></select>
+      </label>
+      <label>Visit days<input name="visit_days" /></label>
+      <label>Visit website<input name="visit_website" /></label>
+      <label>Visit RSVP<input name="visit_rsvp" /></label>
+      <label>Visit RSVP deadline<input name="visit_rsvp_deadline" /></label>
+      <label>Reimbursement<input name="reimbursement" /></label>
+      <label>Hotel<input name="hotel" /></label>
+      <label>Flight in<input name="flight_in" /></label>
+    </div>
+
+    <h4>Scoring (1–5 each, based on your research)</h4>
+    <div class="modal-grid modal-grid-scores">
+      <label>Academic & Research Fit<input type="number" min="1" max="5" name="score_academic" /></label>
+      <label>Funding Strength<input type="number" min="1" max="5" name="score_funding" /></label>
+      <label>Admissions Feasibility<input type="number" min="1" max="5" name="score_admissions" /></label>
+      <label>Career Outcomes<input type="number" min="1" max="5" name="score_career" /></label>
+      <label>Environment & Logistics<input type="number" min="1" max="5" name="score_environment" /></label>
+      <label>Practical & Personal Fit<input type="number" min="1" max="5" name="score_personal" /></label>
+    </div>
+
+    <label class="span-2">Notes / detail dossier<textarea name="detail_notes" rows="5" placeholder="Paste your fuller research notes for this school here."></textarea></label>
+
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="btnDeleteSchool" hidden>Delete</button>
+      <div class="modal-actions-right">
+        <button type="button" class="btn btn-ghost" id="btnCancelSchool">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="btnSaveSchool">Save</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- ===== Recommender edit modal ===== -->
+<dialog id="recommenderModal" class="modal">
+  <form method="dialog" class="modal-form" id="recommenderForm">
+    <h3 id="recommenderModalTitle">Add recommender</h3>
+    <div class="modal-grid">
+      <label>Name<input name="name" required /></label>
+      <label>Title<input name="title" /></label>
+      <label>Email<input name="email" type="email" /></label>
+      <label>Phone<input name="phone" /></label>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="btnDeleteRecommender" hidden>Delete</button>
+      <div class="modal-actions-right">
+        <button type="button" class="btn btn-ghost" id="btnCancelRecommender">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
